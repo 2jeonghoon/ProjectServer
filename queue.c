@@ -29,7 +29,6 @@ void queue_insert(Queue* q) {
 		printf("queue is full\n");
 		return;
 	}
-	printf("order insert\n");
 	q->list[q->rear] = 1;
 	q->rear = (q->rear + 1) % (q->size);
 }

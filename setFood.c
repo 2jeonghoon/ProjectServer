@@ -19,15 +19,18 @@ int main(){
 			printf("setFood input : %d\n", *input);
 			break;
 		}
-		
-		if(is_empty_queue(setFoodlist) == FALSE && *kitchen > 0){
-			*kitchen = *kitchen - 1;
-			printf("\n---setFood pop---\n");
-			printf("pop : %d\n", queue_pop(setFoodlist));
-			sleep(5);
-			//queue_insert(setFoodlist);
-			printf("\n---setFood pop complete\n");
-			*kitchen = *kitchen + 1;
+		if(is_empty_queue(setFoodlist) == FALSE && *kitchen > 0){	
+			queue_pop(setFoodlist);
+			int tmp = fork();
+			if(tmp == 0){
+				*kitchen = *kitchen - 1;
+				printf("\n---setFood pop---\n");
+				sleep(5);
+				//queue_insert(setFoodlist);
+				printf("\n---setFood pop complete\n");
+				*kitchen = *kitchen + 1;
+				return -1;
+			}
 		}
 	}
 

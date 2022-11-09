@@ -22,15 +22,21 @@ int main(){
 			printf("ingredient input : %d\n", *input);
 			break;
 		}
-		
 		if(is_empty_queue(orderlist) == FALSE && *kitchen > 0){
-			*kitchen = *kitchen - 1;
-			printf("\n---ingredient pop---\n");
-			printf("pop : %d\n", queue_pop(orderlist));
-			sleep(5);
-			queue_insert(gasRangelist);
-			printf("\n---ingredient pop complete\n");
-			*kitchen = *kitchen + 1;
+			queue_pop(orderlist);
+			int child = fork();
+			if(child == 0){
+				printf("---ingredient child create---\n");
+				//Lock
+				*kitchen = *kitchen - 1;
+				sleep(5);
+				//Lock
+				queue_insert(gasRangelist);
+				printf("\n---ingredient pop complete\n");
+				//Lock
+				*kitchen = *kitchen + 1;
+				return -1;
+			}
 		}
 	}
 

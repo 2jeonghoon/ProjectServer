@@ -17,18 +17,32 @@ int main(){
 	int *kitchen_addr = (int*)shmat(KITCHEN_SHMIP, NULL, 0);
 	int *kitchen = kitchen_addr;
 
+	// gasRange Count
+	int gasRangeCount = 0;
+
 	while(1){
 		if(*input == EXIT){
 			printf("gasRange input : %d\n", *input);
 			break;
 		}
-		
-		if(is_empty_queue(gasRangelist) == FALSE && *kitchen > 0){
-			printf("\n---gasRangelist pop---\n");
-			printf("pop : %d\n", queue_pop(gasRangelist));
-			sleep(10);
-			queue_insert(setFoodlist);
-			printf("\n---gasRangelist pop complete\n");
+	
+		//가스레인지를 모두 사용 중일 때
+		if(gasRangeCount == GASRANGE_COUNT){
+			printf("gasRange full\n");
+			//wait
+			while(gasRangeCount == GASRANGE_COUNT){}
+		}
+		else if(is_empty_queue(gasRangelist) == FALSE && gasRangeCount < GASRANGE_COUNT ){
+			queue_pop(gasRangelist);
+			int child = fork();
+			gasRangeCount--;
+			if(child == 0){
+				printf("\n---gasRangelist pop---\n");
+				sleep(10);
+				queue_insert(setFoodlist);
+				printf("\n---gasRangelist pop complete\n");
+				return -1;
+			}
 		}
 	}
 

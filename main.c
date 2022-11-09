@@ -2,7 +2,7 @@
 #include "queue.h"
 
 int main(int argc, char* argv[]){
-	char* path = "/home/g_201911180/test1";
+	char* path = "/home/g_201911180/project";
 
 	if(argc != 3){
 		printf("./main kitchenNum hallNum\n");
@@ -10,33 +10,58 @@ int main(int argc, char* argv[]){
 	}
 
 	//kitchen init	
-	int* kitchen_addr = (int*)shmat(KITCHEN_SHMIP, NULL, 0);
+	int* kitchen_addr;
+	if((kitchen_addr  = (int*)shmat(KITCHEN_SHMIP, NULL, 0)) < 0){
+		printf("kitchen shm error\n");
+		return -1;
+	}
 	int* kitchen = kitchen_addr;
 	*kitchen = atoi(argv[1]);
+	printf("kitchen init\n");
 
 	//orderlist shm
-	Queue* orderlist_addr = (Queue*)shmat(ORDERLIST_SHMIP, NULL, 0);
+	Queue* orderlist_addr;
+	if((orderlist_addr  = (Queue*)shmat(ORDERLIST_SHMIP, NULL, 0)) < 0){
+		printf("orderlist shm error\n");
+		return -1;
+	}
 	Queue* orderlist = orderlist_addr;	
 	init_queue(orderlist, 10);
+	printf("orderlist init\n");
 
 	//gasRangelist shm
-	Queue* gasRangelist_addr = (Queue*)shmat(GASRANGELIST_SHMIP, NULL, 0);
+	Queue* gasRangelist_addr;
+	if((gasRangelist_addr  = (Queue*)shmat(GASRANGELIST_SHMIP, NULL, 0)) < 0){
+		printf("gasRangelist shm error\n");
+		return -1;
+	}
 	Queue* gasRangelist = gasRangelist_addr;	
 	init_queue(gasRangelist, 10);
+	printf("gasRangelsit init\n");
 
 	//setFoodlist shm
-	Queue* setFoodlist_addr = (Queue*)shmat(SETFOODLIST_SHMIP, NULL, 0);
+	Queue* setFoodlist_addr;
+	if(( setFoodlist_addr = (Queue*)shmat(SETFOODLIST_SHMIP, NULL, 0)) < 0){
+		printf("setFoodlist shm error\n");
+		return -1;
+	}
 	Queue* setFoodlist = setFoodlist_addr;	
 	init_queue(setFoodlist, 10);
+	printf("setFoodlist init\n");
 
 	//input init
-	int* input_addr = (int*)shmat(INPUT_SHMIP, NULL, 0);
+	int* input_addr;
+	if((input_addr  = (int*)shmat(INPUT_SHMIP, NULL, 0)) < 0){
+		printf("input shm error\n");
+		return -1;
+	}
 	int* input = input_addr;
+	printf("input init\n");
 	*input = 999;
 
 	int ingredient_pid = fork();
 	if(ingredient_pid == 0){
-		path = "/home/g_201911180/test1/ingredient";
+		path = "/home/g_201911180/project/ingredient";
 		execlp(path, "ingredient", NULL);
 		printf("ingredient process fail\n");
 		return -1;
@@ -44,7 +69,7 @@ int main(int argc, char* argv[]){
 
 	int gasRange_pid = fork();
 	if(gasRange_pid == 0){
-		path = "/home/g_201911180/test1/gasRange";
+		path = "/home/g_201911180/project/gasRange";
 		execlp(path, "gasRange", NULL);
 		printf("gasRange process fail\n");
 		return -1;
@@ -52,7 +77,7 @@ int main(int argc, char* argv[]){
 
 	int setFood_pid = fork();
 	if(setFood_pid == 0){
-		path = "/home/g_201911180/test1/setFood";
+		path = "/home/g_201911180/project/setFood";
 		execlp(path, "setFood", NULL);
 		printf("setFood process fail\n");
 		return -1;
