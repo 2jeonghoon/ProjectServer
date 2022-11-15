@@ -1,30 +1,43 @@
-main: main.o queue.o
-	gcc -g -o main main.o queue.o
-main.o: main.c
-	gcc -c main.c
+main: main.o foodlist.o food.o
+	gcc -g -o main main.o foodlist.o food.o
+ingredient: ingredient.o foodlist.o food.o
+	gcc -g -o ingredient ingredient.o foodlist.o food.o
+gasRange: gasRange.o foodlist.o food.o
+	gcc -g -o gasRange gasRange.o foodlist.o food.o
+setFood: setFood.o foodlist.o food.o
+	gcc -g -o setFood setFood.o foodlist.o food.o
 
-ingredient: ingredient.o queue.o
-	gcc -g -o ingredient  ingredient.o queue.o
-ingredient.o: ingredient.c
-	gcc -c ingredient.c
+hall: hall.o foodlist.o food.o table.o
+	gcc -g -o hall hall.o foodlist.o food.o table.o
+serving: serving.o foodlist.o food.o table.o
+	gcc -g -o serving serving.o foodlist.o food.o table.o
+clean: clean.o foodlist.o food.o table.o
+	gcc -g -o clean clean.o foodlist.o food.o table.o
 
-gasRange: gasRange.o queue.o
-	gcc -g -o gasRange gasRange.o queue.o
-gasRange.o: gasRange.c
-	gcc -c gasRange.c
 
-setFood: setFood.o queue.o
-	gcc -g -o setFood setFood.o queue.o
-setFood.o: setFood.c
-	gcc -c setFood.c
+main.o: main.c foodlist.h
+	gcc -c main.c foodlist.h
+ingredient.o: ingredient.c foodlist.h
+	gcc -c ingredient.c foodlist.h
+gasRange.o: gasRange.c foodlist.h
+	gcc -c gasRange.c foodlist.h
+setFood.o: setFood.c foodlist.h
+	gcc -c setFood.c foodlist.h
 
-makeshm: makeshm.o queue.o
-	gcc -g -o makeshm makeshm.o queue.o
-makeshm.o: makeshm.c
-	gcc -c makeshm.c
+foodlist.o: foodlist.c foodlist.h food.h define.h
+	gcc -c foodlist.c foodlist.h food.h define.h
+food.o: food.c food.h
+	gcc -c food.c food.h
 
-queue.o: queue.c
-	gcc -c queue.c
 
-clean:
-	rm -rf *.o
+
+hall.o: hall.c foodlist.h
+	gcc -c hall.c foodlist.h
+serving.o: serving.c
+	gcc -c serving.c
+clean.o: clean.c
+	gcc -c clean.c
+
+
+table.o: table.c table.h
+	gcc -c table.c table.h

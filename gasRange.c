@@ -1,52 +1,81 @@
 #include "define.h"
-#include "queue.h"
+
+#include "foodlist.h"
+
+
+int gasRange_count = 0;
+int gasRange_amount = 8;
+
+void foo(int signum){
+	int status;
+	while(waitpid(0, &status, WNOHANG) > 0){
+		gasRange_count--;
+		printf("status : %d\n", status);
+	}
+}
 
 int main(){
 
-	printf("\n---gasRange process on---\n");
+	char* path = "/home/g_201911180/project/mmap/";
 
-	Queue* gasRangelist_addr = (Queue*)shmat(GASRANGELIST_SHMIP, NULL, 0);
-	Queue* gasRangelist = gasRangelist_addr;
+	int fd, length, pagesize;
+	FoodList* addr;
+	caddr_t addr2;
 
-	Queue* setFoodlist_addr = (Queue*)shmat(SETFOODLIST_SHMIP, NULL, 0);
-	Queue* setFoodlist = setFoodlist_addr;
+	FoodList* foodlist;
+	foodlist = (FoodList*)malloc(sizeof(FoodList));
+	if(foodlist == NULL){
+		printf("struct error\n");
+	}
+	
+	pagesize = sizeof(FoodList);
 
-	int *input_addr = (int*)shmat(INPUT_SHMIP, NULL, 0);
-	int *input = input_addr;
+	// file open
+	if((fd = open("test.txt", O_RDWR | O_CREAT|O_TRUNC, 0666)) == -1)
+		printf("fd error\n");
 
-	int *kitchen_addr = (int*)shmat(KITCHEN_SHMIP, NULL, 0);
-	int *kitchen = kitchen_addr;
+	length = 1 * pagesize;
+	
+	// size change
+	if(ftruncate(fd, (off_t)length) == -1){
+		printf("truncate error\n");
+	}	
 
-	// gasRange Count
-	int gasRangeCount = 0;
+	// mmap
+	addr = (FoodList*)mmap(NULL, length, PROT_READ|PROT_WRITE, MAP_SHARED, fd, (off_t)0);
+	if(addr == MAP_FAILED)
+		printf("mmap error\n");
 
+	sleep(2);
+	printf("\n---gasRange process creat---\n");
+
+	int gasRange_index = 0;
+	int gasRange_pid = 0;
+
+	signal(SIGCHLD, foo);
 	while(1){
-		if(*input == EXIT){
-			printf("gasRange input : %d\n", *input);
+		if(addr->input == 0){
+			printf("---gasRange input exit---\n");
+			print_foodlist(addr);
 			break;
 		}
-	
-		//가스레인지를 모두 사용 중일 때
-		if(gasRangeCount == GASRANGE_COUNT){
-			printf("gasRange full\n");
-			//wait
-			while(gasRangeCount == GASRANGE_COUNT){}
-		}
-		else if(is_empty_queue(gasRangelist) == FALSE && gasRangeCount < GASRANGE_COUNT ){
-			queue_pop(gasRangelist);
-			int child = fork();
-			gasRangeCount--;
-			if(child == 0){
-				printf("\n---gasRangelist pop---\n");
-				sleep(10);
-				queue_insert(setFoodlist);
-				printf("\n---gasRangelist pop complete\n");
-				return -1;
+
+		if(addr->list[gasRange_index].ingredient == 1 && addr->list[gasRange_index].gasRange == 0
+			&& gasRange_count < gasRange_amount){
+			gasRange_count++;
+			gasRange_pid = fork();
+			if(gasRange_pid == 0){
+				printf("gasRange set!!\n");
+				sleep(GASRANGE_TIME);
+				addr->list[gasRange_index].gasRange = 1;
+				printf("child gasRange exit\n");
+				exit(0);
 			}
+			gasRange_index = (gasRange_index + 1) % addr->size;
 		}
 	}
-
-	printf("\n---gasRange process exit\n");
-		
+	printf("---gasRange process exit---\n");
 	return 0;
-}
+}	
+
+

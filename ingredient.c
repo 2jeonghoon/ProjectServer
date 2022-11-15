@@ -1,46 +1,81 @@
 #include "define.h"
-#include "queue.h"
+
+#include "foodlist.h"
+
+void foo(int signum){
+	int status;
+	while(waitpid(0, &status, WNOHANG) > 0){
+		printf("status : %d\n", status);
+	}
+}
 
 int main(){
 
-	printf("\n---ingredient process on---\n");
+	char* path = "/home/g_201911180/project/mmap/";
 
-	Queue* orderlist_addr = (Queue*)shmat(ORDERLIST_SHMIP, NULL, 0);
-	Queue* orderlist = orderlist_addr;
+	int fd, length, pagesize;
+	FoodList* addr;
+	caddr_t addr2;
 
-	Queue* gasRangelist_addr = (Queue*)shmat(GASRANGELIST_SHMIP, NULL, 0);
-	Queue* gasRangelist = gasRangelist_addr;
+	FoodList* foodlist;
+	foodlist = (FoodList*)malloc(sizeof(FoodList));
+	if(foodlist == NULL){
+		printf("struct error\n");
+	}
+	
+	pagesize = sizeof(FoodList);
 
-	int *input_addr = (int*)shmat(INPUT_SHMIP, NULL, 0);
-	int *input = input_addr;
+	// file open
+	if((fd = open("test.txt", O_RDWR | O_CREAT|O_TRUNC, 0666)) == -1)
+		printf("fd error\n");
 
-	int *kitchen_addr = (int*)shmat(KITCHEN_SHMIP, NULL, 0);
-	int *kitchen = kitchen_addr;
+	length = 1 * pagesize;
+	
+	// size change
+	if(ftruncate(fd, (off_t)length) == -1){
+		printf("truncate error\n");
+	}	
 
+	// mmap
+	addr = (FoodList*)mmap(NULL, length, PROT_READ|PROT_WRITE, MAP_SHARED, fd, (off_t)0);
+	if(addr == MAP_FAILED)
+		printf("mmap error\n");
+
+	sleep(1.5f);
+	printf("\n---ingredient process creat---\n");
+
+	int ingredient_index = 0;
+	int ingredient_pid = 0;
+
+	signal(SIGCHLD, foo);
 	while(1){
-		if(*input == EXIT){
-			printf("ingredient input : %d\n", *input);
+		if(addr->input == 0){
+			printf("addr->input : %d\n", addr->input);
+			printf("---ingredient input exit---\n");
 			break;
 		}
-		if(is_empty_queue(orderlist) == FALSE && *kitchen > 0){
-			queue_pop(orderlist);
-			int child = fork();
-			if(child == 0){
-				printf("---ingredient child create---\n");
-				//Lock
-				*kitchen = *kitchen - 1;
-				sleep(5);
-				//Lock
-				queue_insert(gasRangelist);
-				printf("\n---ingredient pop complete\n");
-				//Lock
-				*kitchen = *kitchen + 1;
-				return -1;
+			
+
+		if(addr->list[ingredient_index].ingredient == 0 && addr->kitchen > 0){
+		
+			addr->kitchen--;			
+
+			ingredient_pid = fork();
+			if(ingredient_pid == 0){
+				printf("ingredient set!!\n");
+				sleep(INGREDIENT_TIME);
+				addr->list[ingredient_index].ingredient = 1;
+				printf("\n---child ingredient exit---\n");
+				addr->kitchen++;
+				exit(0);
 			}
+			ingredient_index = (ingredient_index + 1) % addr->size;
 		}
 	}
 
-	printf("\n---ingredient process exit\n");
-		
+	close(fd);
+
+	printf("\n---ingredient process exit---\n");
+
 	return 0;
 }

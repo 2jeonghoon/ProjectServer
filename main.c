@@ -1,126 +1,125 @@
-#include "define.h"
-#include "queue.h"
+#include <sys/types.h>
+#include <sys/mman.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "foodlist.h"
+#include "table.h"
 
 int main(int argc, char* argv[]){
-	char* path = "/home/g_201911180/project";
 
 	if(argc != 3){
-		printf("./main kitchenNum hallNum\n");
+		printf("./main kitchen_num hall_num\n");
 		return 0;
 	}
+	int kitchen = atoi(argv[1]);
+	int hall = atoi(argv[2]);
 
-	//kitchen init	
-	int* kitchen_addr;
-	if((kitchen_addr  = (int*)shmat(KITCHEN_SHMIP, NULL, 0)) < 0){
-		printf("kitchen shm error\n");
-		return -1;
+
+	char path[100] = "/home/g_201911180/project/mmap/";
+
+
+	int fd, length, pagesize;
+	FoodList* addr;
+	caddr_t addr2;
+
+	FoodList* foodlist;
+	foodlist = (FoodList*)malloc(sizeof(FoodList));
+	if(foodlist == NULL){
+		printf("struct error\n");
 	}
-	int* kitchen = kitchen_addr;
-	*kitchen = atoi(argv[1]);
-	printf("kitchen init\n");
-
-	//orderlist shm
-	Queue* orderlist_addr;
-	if((orderlist_addr  = (Queue*)shmat(ORDERLIST_SHMIP, NULL, 0)) < 0){
-		printf("orderlist shm error\n");
-		return -1;
+	else{
+		//init_foodlist(foodlist);
 	}
-	Queue* orderlist = orderlist_addr;	
-	init_queue(orderlist, 10);
-	printf("orderlist init\n");
+	
+	pagesize = sizeof(FoodList);
+	
+	// file open
+	if((fd = open("test.txt", O_RDWR | O_CREAT|O_TRUNC, 0666)) == -1)
+		printf("fd error\n");
 
-	//gasRangelist shm
-	Queue* gasRangelist_addr;
-	if((gasRangelist_addr  = (Queue*)shmat(GASRANGELIST_SHMIP, NULL, 0)) < 0){
-		printf("gasRangelist shm error\n");
-		return -1;
-	}
-	Queue* gasRangelist = gasRangelist_addr;	
-	init_queue(gasRangelist, 10);
-	printf("gasRangelsit init\n");
+	length = 1 * pagesize;
+	
+	// size change
+	if(ftruncate(fd, (off_t)length) == -1){
+		printf("truncate error\n");
+	}	
 
-	//setFoodlist shm
-	Queue* setFoodlist_addr;
-	if(( setFoodlist_addr = (Queue*)shmat(SETFOODLIST_SHMIP, NULL, 0)) < 0){
-		printf("setFoodlist shm error\n");
-		return -1;
-	}
-	Queue* setFoodlist = setFoodlist_addr;	
-	init_queue(setFoodlist, 10);
-	printf("setFoodlist init\n");
+	// mmap
+	addr = (FoodList*)mmap(NULL, length, PROT_READ|PROT_WRITE, MAP_SHARED, fd, (off_t)0);
+	if(addr == MAP_FAILED)
+		printf("mmap error\n");
 
-	//input init
-	int* input_addr;
-	if((input_addr  = (int*)shmat(INPUT_SHMIP, NULL, 0)) < 0){
-		printf("input shm error\n");
-		return -1;
-	}
-	int* input = input_addr;
-	printf("input init\n");
-	*input = 999;
+	close(fd);
 
+	//	printf("addr : %d\n", foodlist);
+
+	//print_foodlist(addr);
+
+	// ingredient process
 	int ingredient_pid = fork();
 	if(ingredient_pid == 0){
-		path = "/home/g_201911180/project/ingredient";
+		strcat(path, "ingredient");
 		execlp(path, "ingredient", NULL);
-		printf("ingredient process fail\n");
-		return -1;
+		printf("ingredient execlp error\n");
 	}
-
 	int gasRange_pid = fork();
 	if(gasRange_pid == 0){
-		path = "/home/g_201911180/project/gasRange";
+		strcat(path, "gasRange");
 		execlp(path, "gasRange", NULL);
-		printf("gasRange process fail\n");
-		return -1;
+		printf("gasRange execlp error\n");
 	}
-
 	int setFood_pid = fork();
 	if(setFood_pid == 0){
-		path = "/home/g_201911180/project/setFood";
+		strcat(path, "setFood");
 		execlp(path, "setFood", NULL);
-		printf("setFood process fail\n");
-		return -1;
+		printf("setFood execlp error\n");
 	}
 
-	printf("---kitchen : %d, hall : %d---\n", *kitchen, atoi(argv[2]));
+	//hall
+	int hall_pid = fork();
+	if(hall_pid == 0){
+		strcat(path, "hall");
+		execlp(path, "hall", NULL);
+		printf("hall execlp error\n");
+	}
+
+	sleep(1);
+	init_foodlist(addr, kitchen, hall);	
+	
+	printf("addr->input : %d\n", addr->input);
 
 	while(1){
-	
-		printf("order : 1, orderprint : 2, gasRangeprint : 3, setFoodprint : 4, restaurant : 9, exit : 0 >> ");
-		scanf("%d", input);
-
-		switch(*input){
-
+		printf("order :1, foodlist : 2, delet_foodlist : 3, print_hall : 4,  msync : 9, exit :0 >> ");
+		scanf("%d", &(addr->input));
+		switch(addr->input){
 			case 1:
-				*input = 1;
-				queue_insert(orderlist);
-				printf("\n---order---\n");
+				insert_order(addr);
 				break;
 			case 2:
-				queue_print(orderlist);
+				print_foodlist(addr);
 				break;
 			case 3:
-				queue_print(gasRangelist);
-				break;
-			case 4:
-				queue_print(setFoodlist);
+				delete_foodlist(addr);
 				break;
 			case 9:
-				printf("---kitchen : %d, hall : %d---\n", *kitchen, atoi(argv[2]));
+				msync(addr, length,MS_SYNC);
 				break;
 			case 0:
-				*input = EXIT;
-				printf("\n---exit---\n");
-				return 0;
-		}		
+				printf("main process exit\n");
+				exit(0);
+		}
+		if(msync(addr, length, MS_SYNC) == -1){
+			printf("Could not sysnc\n");
+		}  
 
-	
 	}
-	free(input);
-	free(orderlist);
-	free(gasRangelist);
-	free(setFoodlist);
+
+
+	printf("main process exit\n");
 
 	return 0;
 }
