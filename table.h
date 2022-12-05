@@ -7,6 +7,7 @@ typedef struct Table{
 	int index;
 	int delete_index;
 	int hall;
+	int sales_count;
 }Table;
 
 void init_table(Table* table, int hall);

@@ -1,5 +1,5 @@
-main: main.o foodlist.o food.o
-	gcc -g -o main main.o foodlist.o food.o
+main: main.o foodlist.o food.o table.o
+	gcc -g -o main main.o foodlist.o food.o table.o
 ingredient: ingredient.o foodlist.o food.o
 	gcc -g -o ingredient ingredient.o foodlist.o food.o
 gasRange: gasRange.o foodlist.o food.o

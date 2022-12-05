@@ -2,6 +2,10 @@
 
 #include "foodlist.h"
 #include "table.h"
+
+void processExit();
+void setProcess();
+
 int main(){
 
 	char path[100] = "/home/g_201911180/project/mmap/";
@@ -71,13 +75,18 @@ int main(){
 	int hall_index = 0;
 	int hall_pid = 0;
 
+	//printf("hall pid : %d\n", getpid());
+	//printf("hall ppid : %d\n", getppid());
+	signal(SIGUSR2, setProcess); //setProcess
+	signal(SIGUSR1, processExit);
 	while(1){
 		addr_hall->input = addr->input;
-		if(addr->input == 0){
-			printf("---hall input exit---\n");
-			break;
-		}
-		else if(addr->input == 4){
+	//	if(addr->input == 0){
+	//		addr_hall->input = addr->input;
+	//		printf("---hall input exit---\n");
+	//		break;
+	//	}
+		if(addr->input == 3){
 			print_table(addr_hall);
 			addr->input = 999;
 		}
@@ -88,4 +97,14 @@ int main(){
 	printf("\n---hall process exit---\n");
 
 	return 0;
+}
+
+void processExit(int signo){
+//	addr_hall->input = addr->input;
+	printf("===hall signal exit===\n");
+	exit(0);
+}
+
+void setProcess(){
+	kill(getppid(), SIGUSR2);
 }

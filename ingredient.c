@@ -5,8 +5,15 @@
 void foo(int signum){
 	int status;
 	while(waitpid(0, &status, WNOHANG) > 0){
-		printf("status : %d\n", status);
+		//printf("status : %d\n", status);
 	}
+}
+
+
+void processExit(int signo){
+//	addr_hall->input = addr->input;
+	printf("===ingredient signal exit===\n");
+	exit(0);
 }
 
 int main(){
@@ -42,18 +49,19 @@ int main(){
 		printf("mmap error\n");
 
 	sleep(1.5f);
-	printf("\n---ingredient process creat---\n");
+	printf("\n---ingredient process create---\n");
 
 	int ingredient_index = 0;
 	int ingredient_pid = 0;
 
 	signal(SIGCHLD, foo);
+	signal(SIGUSR1, processExit);
 	while(1){
-		if(addr->input == 0){
-			printf("addr->input : %d\n", addr->input);
-			printf("---ingredient input exit---\n");
-			break;
-		}
+//		if(addr->input == 0){
+//			printf("addr->input : %d\n", addr->input);
+//			printf("---ingredient input exit---\n");
+//			break;
+//		}
 			
 
 		if(addr->list[ingredient_index].ingredient == 0 && addr->kitchen > 0){
@@ -62,10 +70,10 @@ int main(){
 
 			ingredient_pid = fork();
 			if(ingredient_pid == 0){
-				printf("ingredient set!!\n");
+				//printf("ingredient set!!\n");
 				sleep(INGREDIENT_TIME);
 				addr->list[ingredient_index].ingredient = 1;
-				printf("\n---child ingredient exit---\n");
+				//printf("\n---child ingredient exit---\n");
 				addr->kitchen++;
 				exit(0);
 			}
@@ -79,3 +87,4 @@ int main(){
 
 	return 0;
 }
+

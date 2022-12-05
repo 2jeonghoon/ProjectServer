@@ -1,12 +1,13 @@
 #include "table.h"
 
 void init_table(Table* table, int hall){
-	printf("\n===init_table===\n");
+	//printf("\n===init_table===\n");
 	table->size = 10;
 	table->index = 0;
 	table->delete_index = 0;
 	table->input = 999;
 	table->hall = hall;
+	table->sales_count = 0;
 	for(int i = 0; i < table->size; i++){
 		table->list[i] = 0;
 	}
@@ -26,16 +27,16 @@ void delete_table(Table* table){
 		printf("table is empty!!\n");
 	}else{
 		table->list[table->delete_index] = 0;
-		table->index = (table->index+1) % table->size;
+		table->delete_index = (table->delete_index+1) % table->size;
 	}
 }
 
 void print_table(Table* table){
 	printf("\n===print_table===\n");
 	printf("table->size :%d\n", table->size);
-	printf("table->hall :%d\n", table->hall);
-	printf("table->index : %d\n", table->index);
-	printf("table->delete_index :%d\n", table->delete_index);
+	//printf("table->hall :%d\n", table->hall);
+	//printf("table->index : %d\n", table->index);
+	//printf("table->delete_index :%d\n", table->delete_index);
 	printf("hall : %d\n", table->hall);
 
 	for(int i = 0; i < table->size; i++){

@@ -10,10 +10,16 @@ void foo(int signum){
 	int status;
 	while(waitpid(0, &status, WNOHANG) > 0){
 		gasRange_count--;
-		printf("status : %d\n", status);
+		//printf("status : %d\n", status);
 	}
 }
 
+void processExit(int signo){
+//	addr_hall->input = addr->input;
+	printf("===gasRange signal exit===\n");
+	exit(0);
+
+}
 int main(){
 
 	char* path = "/home/g_201911180/project/mmap/";
@@ -47,12 +53,13 @@ int main(){
 		printf("mmap error\n");
 
 	sleep(2);
-	printf("\n---gasRange process creat---\n");
+	printf("\n---gasRange process create---\n");
 
 	int gasRange_index = 0;
 	int gasRange_pid = 0;
 
 	signal(SIGCHLD, foo);
+	signal(SIGUSR1, processExit);
 	while(1){
 		if(addr->input == 0){
 			printf("---gasRange input exit---\n");
@@ -65,10 +72,10 @@ int main(){
 			gasRange_count++;
 			gasRange_pid = fork();
 			if(gasRange_pid == 0){
-				printf("gasRange set!!\n");
+				//printf("gasRange set!!\n");
 				sleep(GASRANGE_TIME);
 				addr->list[gasRange_index].gasRange = 1;
-				printf("child gasRange exit\n");
+				//printf("child gasRange exit\n");
 				exit(0);
 			}
 			gasRange_index = (gasRange_index + 1) % addr->size;

@@ -1,13 +1,9 @@
-#include <sys/types.h>
-#include <sys/mman.h>
-#include <fcntl.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <string.h>
-
+#include "define.h"
 #include "foodlist.h"
 #include "table.h"
+
+void processExit();
+void setProcess();
 
 int main(int argc, char* argv[]){
 
@@ -21,7 +17,7 @@ int main(int argc, char* argv[]){
 
 	char path[100] = "/home/g_201911180/project/mmap/";
 
-
+	FILE* sales_list;
 	int fd, length, pagesize;
 	FoodList* addr;
 	caddr_t addr2;
@@ -59,6 +55,7 @@ int main(int argc, char* argv[]){
 
 	//print_foodlist(addr);
 
+	signal(SIGUSR2, setProcess);
 	// ingredient process
 	int ingredient_pid = fork();
 	if(ingredient_pid == 0){
@@ -89,11 +86,16 @@ int main(int argc, char* argv[]){
 
 	sleep(1);
 	init_foodlist(addr, kitchen, hall);	
-	
-	printf("addr->input : %d\n", addr->input);
 
+//	printf("main pid : %d\n", getpid());	
+//	printf("addr->input : %d\n", addr->input);	
+
+	//hall에서 signal 보낼 때까지 기다리기 -> setProcess호출 됨
+	pause();
+
+	signal(SIGUSR1, processExit);
 	while(1){
-		printf("order :1, foodlist : 2, delet_foodlist : 3, print_hall : 4,  msync : 9, exit :0 >> ");
+		printf("order :1, print_foodlist : 2, print_hall : 3, print_sales : 4, exit :0 >> "); // print_hall은 hall에서 처리함.
 		scanf("%d", &(addr->input));
 		switch(addr->input){
 			case 1:
@@ -102,24 +104,35 @@ int main(int argc, char* argv[]){
 			case 2:
 				print_foodlist(addr);
 				break;
-			case 3:
-				delete_foodlist(addr);
-				break;
-			case 9:
-				msync(addr, length,MS_SYNC);
+			case 4:
+				if((sales_list = fopen("salesList.txt", "r")) == NULL){
+					printf("sales_list open error\n");
+				}else{
+					char str[100];
+					fgets(str, 100, sales_list);
+					printf("salse_count :%s\n", str);
+				}
 				break;
 			case 0:
+				printf("===signal : %d===\n",killpg(getpgrp(), SIGUSR1));
 				printf("main process exit\n");
 				exit(0);
+			default:
+				printf("select from the view\n");	
 		}
-		if(msync(addr, length, MS_SYNC) == -1){
-			printf("Could not sysnc\n");
-		}  
-
 	}
 
 
 	printf("main process exit\n");
 
 	return 0;
+}
+
+void processExit(){
+	printf("main process exit\n");
+	exit(0);
+}
+
+void setProcess(){
+	printf("===setting complete===\n");
 }

@@ -5,8 +5,15 @@
 void foo(int signum){
 	int status;
 	while(waitpid(0, &status, WNOHANG) > 0){
-		printf("status : %d\n", status);
+		//printf("status : %d\n", status);
 	}
+}
+
+void count_sales(FILE* fp, int sales_count){
+	char str[100];
+	fseek(fp, 0, SEEK_SET);
+	sprintf(str, "%d", sales_count);
+	fputs(str, fp);
 }
 
 // clean
@@ -14,6 +21,7 @@ int main(){
 
 	char* path = "/home/g_201911180/project/mmap/";
 
+	FILE* sales_list;
 	int fd, fd_h, length, length_hall, pagesize, pagesize_hall;
 	Table* addr_hall;
 
@@ -28,6 +36,8 @@ int main(){
 	// file open
 	if((fd_h = open("hall.txt", O_RDWR | O_CREAT|O_TRUNC, 0666)) == -1)
 		printf("fd_h error\n");
+	//판매기록을 저장할 파일 생성
+	sales_list = fopen("salesList.txt", "w");
 
 	length_hall = 1 * pagesize_hall;
 	
@@ -43,8 +53,9 @@ int main(){
 
 	sleep(7);
 	printf("\n---clean process create---\n");	
+	kill(getppid(), SIGUSR2);
 
-	int clean_index = 0;
+	int clean_index =0;
 	int clean_pid = 0;
 
 	signal(SIGCHLD, foo);
@@ -58,11 +69,12 @@ int main(){
 			addr_hall->hall--;			
 			clean_pid = fork();
 			if(clean_pid == 0){
-				printf("clean set!!\n");
+				//printf("clean set!!\n");
 				sleep(CLEAN_TIME);
 				delete_table(addr_hall);
-				printf("\n---child serving exit---\n");
+				//printf("\n---child serving exit---\n");
 				addr_hall->hall++;
+				count_sales(sales_list, ++addr_hall->sales_count);
 				exit(0);
 			}
 			clean_index = (clean_index + 1) % addr_hall->size;

@@ -6,7 +6,7 @@
 void foo(int signum){
 	int status;
 	while(waitpid(0, &status, WNOHANG) > 0){
-		printf("status : %d\n", status);
+		//printf("status : %d\n", status);
 	}
 }
 
@@ -78,11 +78,11 @@ int main(){
 
 			serving_pid = fork();
 			if(serving_pid == 0){
-				printf("serving set!!\n");
+				//printf("serving set!!\n");
 				sleep(SERVING_TIME);
 				delete_foodlist(addr);
 				insert_table(addr_hall);
-				printf("\n---child serving exit---\n");
+				//printf("\n---child serving exit---\n");
 				addr_hall->hall++;
 				exit(0);
 			}

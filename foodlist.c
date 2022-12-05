@@ -57,10 +57,10 @@ void insert_order(FoodList* foodlist){
 void print_foodlist(FoodList* foodlist){
 	printf("\n===print_foodlist===\n");
 	printf("foodlist->size :%d\n", foodlist->size);
-	printf("foodlist->index : %d\n", foodlist->index);
-	printf("foodlist->delete_index :%d\n", foodlist->delete_index);
+	//printf("foodlist->index : %d\n", foodlist->index);
+	//printf("foodlist->delete_index :%d\n", foodlist->delete_index);
 	printf("kitchen : %d\n", foodlist->kitchen);
-	printf("hall : %d\n", foodlist->hall);
+	//printf("hall : %d\n", foodlist->hall);
 
 	for(int i = 0; i < foodlist->size; i++){
 		printf("---[%d]---\n", i);

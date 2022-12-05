@@ -1,8 +1,6 @@
 #include "food.h"
 
 void init_food(Food* food){
-
-	printf("\n===init_food===\n");
 	food->ingredient = -1;
 	food->gasRange = -1;
 	food->setFood = -1;

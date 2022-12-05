@@ -5,10 +5,17 @@
 void foo(int signum){
 	int status;
 	while(waitpid(0, &status, WNOHANG) > 0){
-		printf("status : %d\n", status);
+		//printf("status : %d\n", status);
 	}
 
 }
+
+void processExit(int signo){
+//	addr_hall->input = addr->input;
+	printf("===setFood signal exit===\n");
+	exit(0);
+}
+
 
 int main(){
 
@@ -43,11 +50,12 @@ int main(){
 		printf("mmap error\n");
 
 	sleep(3);
-	printf("\n---setFood process creat---\n");
+	printf("\n---setFood process create---\n");
 
 	int setFood_index = 0;
 	int setFood_pid = 0;
 	signal(SIGCHLD, foo);
+	signal(SIGUSR1, processExit);
 	while(1){
 		if(addr->input == 0){
 			printf("---setFood input exit---\n");
@@ -61,10 +69,10 @@ int main(){
 
 			setFood_pid = fork();
 			if(setFood_pid == 0){
-				printf("setFood set!!\n");
+				//printf("setFood set!!\n");
 				sleep(SETFOOD_TIME);
 				addr->list[setFood_index].setFood = 1;
-				printf("---child setFood exit---\n");
+				//printf("---child setFood exit---\n");
 				addr->kitchen++;
 				exit(0);
 			}
