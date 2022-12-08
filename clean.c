@@ -19,7 +19,7 @@ void count_sales(FILE* fp, int sales_count){
 // clean
 int main(){
 
-	char* path = "/home/g_201911180/project/mmap/";
+	char* path = PATH; 
 
 	FILE* sales_list;
 	int fd, fd_h, length, length_hall, pagesize, pagesize_hall;

@@ -8,7 +8,7 @@ void setProcess();
 
 int main(){
 
-	char path[100] = "/home/g_201911180/project/mmap/";
+	char path[100] = PATH;
 
 	int fd, fd_h, length, length_hall, pagesize, pagesize_hall;
 	FoodList* addr;

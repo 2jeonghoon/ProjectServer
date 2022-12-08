@@ -22,7 +22,7 @@ void processExit(int signo){
 }
 int main(){
 
-	char* path = "/home/g_201911180/project/mmap/";
+	char* path = PATH;
 
 	int fd, length, pagesize;
 	FoodList* addr;

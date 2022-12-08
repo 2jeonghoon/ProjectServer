@@ -8,6 +8,8 @@
 #include <string.h>
 #include <signal.h>
 
+#define PATH "/home/g_201911180/project/mmap/"
+
 #define TRUE 1
 #define FALSE 0
 

@@ -15,7 +15,7 @@ int main(int argc, char* argv[]){
 	int hall = atoi(argv[2]);
 
 
-	char path[100] = "/home/g_201911180/project/mmap/";
+	char path[100] = PATH;
 
 	FILE* sales_list;
 	int fd, length, pagesize;
